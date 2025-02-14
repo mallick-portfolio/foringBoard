@@ -1,20 +1,20 @@
-from django.shortcuts import render
 
-from project.serializers import ProjectSerializer
-from .models import Project
-
-from rest_framework import viewsets, permissions, status
+from project.serializers import ProjectSerializer, TaskSerializer
+from .models import Project, Task
+from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
+
 import logging
 logger = logging.getLogger('django')
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permissions_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Project.objects.all()
     model = Project
 
+    
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
@@ -81,3 +81,143 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+    @action(detail=True, methods=['get', 'post'], url_path='tasks')
+    def tasks(self, request, pk=None):
+        """
+        GET: Retrieve all tasks associated with the specified project.
+        POST: Create a new task under the specified project.
+        """
+        try:
+            project = self.get_object()
+            
+            if request.method == 'GET':
+                try:
+                    tasks = project.tasks.all()
+                    serializer = TaskSerializer(tasks, many=True)
+                    return Response(
+                        {
+                            "message": "Tasks retrieved successfully!",
+                            "data": serializer.data,
+                            
+                        }, status=status.HTTP_200_OK)
+                except Exception as e:
+                    logger.error(
+                        f"Error retrieving tasks for project {project.name}: {str(e)}"
+                    )
+                    return Response(
+                        {
+                            "error": "Failed to retrieve tasks.", 
+                            "details": str(e)
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                
+            elif request.method == 'POST':
+                data = request.data.copy()
+                data['project'] = project.id
+                try:
+                    serializer = TaskSerializer(data=data, context={'request': request})
+                    if serializer.is_valid():
+                        serializer.save()
+                        return Response(
+                        {
+                            "message": "Task created successfully!", 
+                            "data": serializer.data
+                        },
+                        status=status.HTTP_201_CREATED,
+                        )
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as e:
+                    logger.error(
+                        f"Error creating task for project {project.name}: {str(e)}"
+                    )
+                    return Response(
+                        {
+                            "error": "Failed to create task.", 
+                            "details": str(e)
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                
+        except Project.DoesNotExist:
+            return Response(
+                {"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class TaskViewSet(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    viewsets.GenericViewSet):
+    serializer_class = TaskSerializer
+    permissions_classes = [permissions.IsAuthenticated]
+    queryset = Task.objects.all()
+    model = Task
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(
+                {
+                    "message": "Task retrived successfully!", 
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(
+                f"Task not found: {str(e)}"
+            )
+            return Response(
+                {
+                    "error": "Task not found.", 
+                    "details": str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            return Response(
+                {
+                    "message": "Task updated successfully!", 
+                    "data": response.data
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(
+                f"Error updating Task {self.get_object().name}: {str(e)}"
+            )
+            return Response(
+                {
+                    "error": "Failed to update Task.", 
+                    "details": str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        task_name = instance.title
+        try:
+            instance.delete()
+            return Response(
+                {
+                    "message": f"Task '{task_name}' deleted successfully!"
+                },
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Exception as e:
+            logger.error(
+                f"Error deleting project {task_name}: {str(e)}"
+            )
+            return Response(
+                {
+                    "error": f"Failed to delete project '{task_name}'.", 
+                    "details": str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            ) 
