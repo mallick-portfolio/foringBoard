@@ -1,4 +1,4 @@
-from .models import Project, Task
+from .models import Project, Task, Comment
 from rest_framework import serializers
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -22,6 +22,17 @@ class TaskSerializer(serializers.ModelSerializer):
         read_only_fields = ['assigned_to']
 
     def create(self, validated_data):
-        print("self", self)
         validated_data['assigned_to'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.id')
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        read_only_fields = ['user']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
         return super().create(validated_data)

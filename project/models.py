@@ -59,7 +59,7 @@ class Task(models.Model):
         return self.title
 
 
-class TaskComment(models.Model):
+class Comment(models.Model):
     """Model for storing task comments"""
     content = models.TextField()
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
