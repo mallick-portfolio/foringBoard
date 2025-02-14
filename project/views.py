@@ -14,6 +14,26 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     model = Project
 
+    def list(self, request, *args, **kwargs):
+        try:
+            response = self.get_queryset()
+            serializer = self.get_serializer(response, many=True)
+            return Response(
+                {
+                "message": "Project retrive successfully!", 
+                 "data": serializer.data
+                 },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(f"Error in ProjectViewSet list method: {str(e)}")
+            return Response(
+                {
+                    "error": "Failed to retrive projects.", 
+                    "details": str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
     
     def create(self, request, *args, **kwargs):
         try:
@@ -58,6 +78,30 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        try:
+            return Response(
+                {
+                    "message": "Project retrieved successfully!",
+                    "data": serializer.data
+                    },
+                    status=status.HTTP_200_OK,
+                    )
+        except Exception as e:
+            logger.error(
+                f"Error retrieving project {instance.name}: {str(e)}"
+                )
+            return Response(
+                {
+                    "error": "Failed to retrieve project.",
+                    "details": str(e)
+                },
+                    status=status.HTTP_400_BAD_REQUEST,
+                    )
+        
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

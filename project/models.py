@@ -57,3 +57,14 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class TaskComment(models.Model):
+    """Model for storing task comments"""
+    content = models.TextField()
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='task_comments')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.comment
