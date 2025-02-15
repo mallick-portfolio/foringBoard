@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -80,23 +81,25 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'foringdb',  # Database name
-        'USER': 'postgres',     # PostgreSQL username
-        'PASSWORD': 'postgres',  # PostgreSQL password
-        'HOST': 'db',  # Default for local
-        'PORT': '5432',       # Default PostgreSQL port
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+if os.getenv('DOCKERIZED'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'foringdb',  # Database name
+            'USER': 'postgres',     # PostgreSQL username
+            'PASSWORD': 'postgres',  # PostgreSQL password
+            'HOST': 'db',  # Default for local
+            'PORT': '5432',       # Default PostgreSQL port
+        }
+    }
+
 
 
 

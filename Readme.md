@@ -27,7 +27,30 @@ To get started, clone the repository using Git:
 ```bash
 git clone https://github.com/mallick-portfolio/foringBoard.git
 cd foringBoard
-docker compose up --build
 ```
+
+## 2. Run Project
+
+### 2.1. Using Docker Setup
+
+If you are using Docker, navigate to the project directory and run the following commands to start the containers
+
+```bash
+docker-compose up --build
+```
+
+### 2.2. Without Docker Setup
+
+If you are not using Docker, navigate to the project directory and run the following commands to install the dependencies and start the development server
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
+```
+
 ## API documentation
+
 - [API Documentation](https://documenter.getpostman.com/view/20671684/2sAYXEDHwB)
