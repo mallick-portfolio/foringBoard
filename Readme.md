@@ -29,3 +29,5 @@ git clone https://github.com/mallick-portfolio/foringBoard.git
 cd foringBoard
 docker compose up --build
 ```
+## API documentation
+- [API Documentation](https://documenter.getpostman.com/view/20671684/2sAYXEDHwB)
