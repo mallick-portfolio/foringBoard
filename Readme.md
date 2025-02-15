@@ -38,6 +38,10 @@ If you are using Docker, navigate to the project directory and run the following
 ```bash
 docker-compose up --build
 ```
+If the given command is not working with your system, try the following command:
+```bash
+docker compose up --build
+```
 
 ### 2.2. Without Docker Setup
 
